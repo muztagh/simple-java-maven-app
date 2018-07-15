@@ -9,6 +9,7 @@ node {
         pipeline.notifyBuild('STARTED')
         docker.image('maven:3-alpine').inside('-v /root/.m2:/root/.m2') {
             stage('Build') {
+                checkout scm
                 sh 'mvn -B -DskipTests clean package'
             }
             stage('Test') {
