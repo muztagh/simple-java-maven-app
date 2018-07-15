@@ -6,7 +6,7 @@ def pipeline = new muztagh.jenkinslib.Pipeline()
 
 node {
     try{
-        pipeline.notifiyBuild('STARTED')
+        pipeline.notifyBuild('STARTED')
         docker.image('maven:3-alpine').inside('-v /root/.m2:/root/.m2') {
             stage('Build') {
                 sh 'mvn -B -DskipTests clean package'
@@ -27,6 +27,6 @@ node {
         currentBuild.result = "FAILED"
         throw e
     } finally {
-        notifiyBuild(currentBuild.result)
+        pipeline.notifyBuild(currentBuild.result)
     }
  }
