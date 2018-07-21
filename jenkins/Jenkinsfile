@@ -3,6 +3,8 @@
 @Library('muztagh-shared-library@master')
 
 def pipeline = new muztagh.jenkinslib.Pipeline()
+def server = Artifactory.server 'my-server-id'
+def rtMaven = Artifactory.newMavenBuild()
 
 node {
     try{
@@ -22,6 +24,22 @@ node {
             }
             stage('Deliver') {
                 sh './jenkins/scripts/deliver.sh'
+            }
+            stage('Publish') {
+                rtMaven.resolver server: server
+                rtMaven.deployer server: server
+                rtMaven.deployer.artifactDeploymentPatterns.addInclude("frog*").addExclude("*.zip")
+                // Set a Maven Tool defined in Jenkins "Manage":
+                rtMaven.tool = MAVEN_TOOL
+                // Optionally set Maven Ops
+                rtMaven.opts = '-Xms1024m -Xmx4096m'
+                // Run Maven:
+                def buildInfo = rtMaven.run pom: 'maven-example/pom.xml', goals: 'clean install'
+                // Alternatively, you can pass an existing build-info instance to the run method:
+                // rtMaven.run pom: 'maven-example/pom.xml', goals: 'clean install', buildInfo: buildInfo
+                
+                // Publish the build-info to Artifactory:
+                server.publishBuildInfo buildInfo
             }
         }
     } catch(e) {
