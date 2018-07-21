@@ -3,7 +3,7 @@
 @Library('muztagh-shared-library@master')
 
 def pipeline = new muztagh.jenkinslib.Pipeline()
-def server = Artifactory.server 'my-server-id'
+def server = Artifactory.server 'localartifactory'
 def rtMaven = Artifactory.newMavenBuild()
 
 node {
