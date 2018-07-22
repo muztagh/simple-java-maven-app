@@ -6,11 +6,7 @@ def pipeline = new muztagh.jenkinslib.Pipeline()
 def server = Artifactory.server 'localartifactory'
 def rtMaven = Artifactory.newMavenBuild()
 
-options {
-  buildDiscarder(logRotator(numToKeepStr:'10'))
-  timeout(time: 5, unit: 'MINUTES')
-  ansiColor('xterm')
-}
+properties([[$class: 'BuildDiscarderProperty', strategy: [$class: 'LogRotator', artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '', numToKeepStr: '15']]]);
 
 node {
     try{
