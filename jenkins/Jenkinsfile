@@ -6,6 +6,12 @@ def pipeline = new muztagh.jenkinslib.Pipeline()
 def server = Artifactory.server 'localartifactory'
 def rtMaven = Artifactory.newMavenBuild()
 
+options {
+  buildDiscarder(logRotator(numToKeepStr:'10'))
+  timeout(time: 5, unit: 'MINUTES')
+  ansiColor('xterm')
+}
+
 node {
     try{
         pipeline.notifyBuild('STARTED')
@@ -28,22 +34,22 @@ node {
             stage('Archive') {
                 archiveArtifacts artifacts: 'target/*.jar'
             }
-            // stage('Publish') {
-            //     rtMaven.resolver server: server
-            //     rtMaven.deployer server: server
-            //     rtMaven.deployer.artifactDeploymentPatterns.addInclude("frog*").addExclude("*.zip")
-            //     // Set a Maven Tool defined in Jenkins "Manage":
-            //     rtMaven.tool = 'M3'
-            //     // Optionally set Maven Ops
-            //     rtMaven.opts = '-Xms1024m -Xmx4096m'
-            //     // Run Maven:
-            //     def buildInfo = rtMaven.run pom: 'pom.xml', goals: 'clean install'
-            //     // Alternatively, you can pass an existing build-info instance to the run method:
-            //     // rtMaven.run pom: 'maven-example/pom.xml', goals: 'clean install', buildInfo: buildInfo
+            stage('Publish') {
+                rtMaven.resolver server: server
+                rtMaven.deployer server: server
+                rtMaven.deployer.artifactDeploymentPatterns.addInclude("frog*").addExclude("*.zip")
+                // Set a Maven Tool defined in Jenkins "Manage":
+                rtMaven.tool = 'M3'
+                // Optionally set Maven Ops
+                rtMaven.opts = '-Xms1024m -Xmx4096m'
+                // Run Maven:
+                def buildInfo = rtMaven.run pom: 'pom.xml', goals: 'clean install'
+                // Alternatively, you can pass an existing build-info instance to the run method:
+                // rtMaven.run pom: 'maven-example/pom.xml', goals: 'clean install', buildInfo: buildInfo
                 
-            //     // Publish the build-info to Artifactory:
-            //     server.publishBuildInfo buildInfo
-            // }
+                // Publish the build-info to Artifactory:
+                server.publishBuildInfo buildInfo
+            }
         }
     } catch(e) {
         currentBuild.result = "FAILED"
@@ -51,4 +57,4 @@ node {
     } finally {
         pipeline.notifyBuild(currentBuild.result)
     }
- }
+}
